@@ -1,12 +1,11 @@
 from celery import Celery
-import os
-
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+from app.core.config import settings
 
 celery_app = Celery(
     "worker",
-    broker=redis_url,
-    backend=redis_url
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL,
+    include=["app.workers.tasks_indexing"] # Include the indexing tasks
 )
 
 celery_app.conf.update(
@@ -15,6 +14,8 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    task_track_started=True,
+    task_time_limit=3600, # 1 hour max for processing large docs
 )
 
 @celery_app.task(name="test_task")

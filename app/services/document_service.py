@@ -9,6 +9,8 @@ from fastapi import status, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import logger
 
+from app.workers.tasks_indexing import process_document_task
+
 class DocumentService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -73,7 +75,8 @@ class DocumentService:
         # 5. Create indexing job
         job = await self.doc_repo.create_indexing_job(tenant_id, document.document_uuid)
 
-        # 6. Trigger background task (TBD in Issue #16)
-        logger.info("indexing_job_created", job_uuid=job.job_uuid, document_uuid=document.document_uuid)
+        # 6. Trigger background task
+        process_document_task.delay(tenant_id, document.document_uuid, job.job_uuid)
+        logger.info("indexing_job_triggered", job_uuid=job.job_uuid, document_uuid=document.document_uuid)
         
         return document, job
