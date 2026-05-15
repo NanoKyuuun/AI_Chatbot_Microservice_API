@@ -1,12 +1,24 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.deps import validate_api_key
+from app.core.logging import setup_logging
+from app.core.errors import global_exception_handler
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+# Initialize logging
+setup_logging()
 
 app = FastAPI(
     title="AI Chatbot Microservice API",
     description="REST API mandiri untuk chatbot AI, pencarian semantik, dan tanya jawab berbasis dokumen",
     version="1.0.0",
 )
+
+# Register exception handlers
+app.add_exception_handler(StarletteHTTPException, global_exception_handler)
+app.add_exception_handler(RequestValidationError, global_exception_handler)
+app.add_exception_handler(Exception, global_exception_handler)
 
 # Set all CORS enabled origins
 app.add_middleware(
