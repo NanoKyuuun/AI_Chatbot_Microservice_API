@@ -27,6 +27,7 @@ dependencies = [
     "beautifulsoup4>=4.12.3",
     "markdown>=3.6",
     "tiktoken>=0.7.0",
+    "qdrant-client>=1.9.1",
 ]
 
 [tool.setuptools.packages.find]
