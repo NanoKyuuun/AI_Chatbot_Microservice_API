@@ -11,6 +11,17 @@ from app.db.models.document import (
     JobStatus,
 )
 
+from app.db.models.chat_usage import (
+    ChatSession,
+    ChatMessage,
+    RetrievalLog,
+    UsageLog,
+    ModelConfig,
+    AnswerFeedback,
+    ChatRole,
+    UsageStatus,
+)
+
 __all__ = [
     "Tenant",
     "TenantStatus",
@@ -26,4 +37,12 @@ __all__ = [
     "CollectionStatus",
     "DocumentStatus",
     "JobStatus",
+    "ChatSession",
+    "ChatMessage",
+    "RetrievalLog",
+    "UsageLog",
+    "ModelConfig",
+    "AnswerFeedback",
+    "ChatRole",
+    "UsageStatus",
 ]
