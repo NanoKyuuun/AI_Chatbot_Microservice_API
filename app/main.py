@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.deps import validate_api_key
 from app.core.logging import setup_logging
 from app.core.errors import global_exception_handler
-from app.api.v1 import routes_collections
+from app.api.v1 import routes_collections, routes_documents
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -32,6 +32,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(routes_collections.router, prefix="/v1")
+app.include_router(routes_documents.router, prefix="/v1")
 
 @app.get("/")
 async def root():
