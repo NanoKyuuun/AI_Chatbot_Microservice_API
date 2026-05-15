@@ -1,0 +1,77 @@
+services:
+  api:
+    build: .
+    container_name: ai_service_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - local_storage:/app/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      qdrant:
+        condition: service_started
+
+  worker:
+    build: .
+    container_name: ai_service_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - local_storage:/app/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      qdrant:
+        condition: service_started
+
+  mysql:
+    image: mysql:8.4
+    container_name: ai_service_mysql
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-ai_service_db}
+      MYSQL_USER: ${DB_USER:-ai_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ai_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$DB_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_service_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ai_service_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  mysql_data:
+  redis_data:
+  qdrant_data:
+  local_storage:
