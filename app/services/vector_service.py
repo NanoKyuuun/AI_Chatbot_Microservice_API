@@ -66,12 +66,20 @@ class VectorService:
         if filters:
             must_filters = []
             for key, value in filters.items():
-                must_filters.append(
-                    models.FieldCondition(
-                        key=key,
-                        match=models.MatchValue(value=value)
+                if isinstance(value, list):
+                    must_filters.append(
+                        models.FieldCondition(
+                            key=key,
+                            match=models.MatchAny(any=value)
+                        )
                     )
-                )
+                else:
+                    must_filters.append(
+                        models.FieldCondition(
+                            key=key,
+                            match=models.MatchValue(value=value)
+                        )
+                    )
             query_filter = models.Filter(must=must_filters)
 
         search_result = await self.client.search(

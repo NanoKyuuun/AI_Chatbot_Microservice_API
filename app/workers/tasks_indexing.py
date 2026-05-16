@@ -92,9 +92,11 @@ async def _process_document(tenant_id: str, document_uuid: str, job_uuid: str):
                     "tenant_uuid": tenant_id,
                     "collection_uuid": document.collection_uuid,
                     "document_uuid": document.document_uuid,
+                    "document_title": document.title,
                     "chunk_uuid": vector_id, # Re-using for chunk ref
                     "external_document_id": document.external_document_id,
                     "source_type": "document",
+                    "content": chunk["content"],
                     "metadata": document.metadata_ or {},
                     "chunk_index": chunk["index"],
                     "token_count": chunk["token_count"]
