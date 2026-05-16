@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import logger
 
 from app.workers.tasks_indexing import process_document_task
+from app.services.vector_service import VectorService
 
 class DocumentService:
     def __init__(self, db: AsyncSession):
@@ -17,6 +18,54 @@ class DocumentService:
         self.doc_repo = DocumentRepository(db)
         self.col_repo = CollectionRepository(db)
         self.storage = get_storage_provider()
+        self.vector_service = VectorService()
+
+    async def list_documents(
+        self, 
+        tenant_id: str, 
+        collection_uuid: Optional[str] = None, 
+        skip: int = 0, 
+        limit: int = 100
+    ):
+        return await self.doc_repo.get_multi(tenant_id, collection_uuid, skip, limit)
+
+    async def delete_document(self, tenant_id: str, document_uuid: str):
+        # 1. Get document
+        document = await self.doc_repo.get_by_uuid(tenant_id, document_uuid)
+        if not document:
+            raise AppError(
+                code="DOCUMENT_NOT_FOUND",
+                message=f"Document {document_uuid} not found",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        # 2. Get collection for vector collection name
+        collection = await self.col_repo.get_by_uuid(tenant_id, document.collection_uuid)
+        if collection:
+            # 3. Delete vectors from Qdrant
+            try:
+                await self.vector_service.delete_by_filter(
+                    collection.vector_collection_name,
+                    {"document_uuid": document_uuid}
+                )
+            except Exception as e:
+                logger.error("vector_deletion_failed", doc_uuid=document_uuid, error=str(e))
+                # Continue anyway to clean up DB and Storage
+
+        # 4. Delete chunks from MySQL
+        await self.doc_repo.delete_chunks(tenant_id, document_uuid)
+
+        # 5. Delete file from storage
+        if document.storage_path:
+            try:
+                await self.storage.delete_file(document.storage_path, tenant_id)
+            except Exception as e:
+                logger.error("file_deletion_failed", path=document.storage_path, error=str(e))
+
+        # 6. Update document status to DELETED
+        await self.doc_repo.delete(document)
+        
+        return True
 
     async def upload_document(
         self, 

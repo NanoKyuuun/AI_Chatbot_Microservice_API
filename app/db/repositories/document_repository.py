@@ -42,6 +42,37 @@ class DocumentRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_multi(
+        self, 
+        tenant_id: str, 
+        collection_uuid: Optional[str] = None, 
+        skip: int = 0, 
+        limit: int = 100
+    ) -> List[Document]:
+        query = select(Document).where(Document.tenant_uuid == tenant_id)
+        if collection_uuid:
+            query = query.where(Document.collection_uuid == collection_uuid)
+        
+        query = query.order_by(Document.created_at.desc()).offset(skip).limit(limit)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
+    async def delete(self, document: Document):
+        document.status = DocumentStatus.DELETED
+        self.db.add(document)
+        await self.db.commit()
+
+    async def delete_chunks(self, tenant_id: str, document_uuid: str):
+        from app.db.models.document import DocumentChunk
+        from sqlalchemy import delete as sqlalchemy_delete
+        
+        query = sqlalchemy_delete(DocumentChunk).where(
+            DocumentChunk.tenant_uuid == tenant_id,
+            DocumentChunk.document_uuid == document_uuid
+        )
+        await self.db.execute(query)
+        await self.db.commit()
+
     async def create_indexing_job(self, tenant_id: str, document_uuid: str) -> IndexingJob:
         job_uuid = str(uuid.uuid4())
         db_obj = IndexingJob(
@@ -63,3 +94,48 @@ class DocumentRepository:
         )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
+
+    async def update_job_status(self, job: IndexingJob, status: str, progress: int = 0, error: str = None):
+        job.status = status
+        job.progress = progress
+        if error:
+            job.error_message = error
+        if status == JobStatus.RUNNING and not job.started_at:
+            from datetime import datetime
+            job.started_at = datetime.utcnow()
+        if status in [JobStatus.SUCCESS, JobStatus.FAILED]:
+            from datetime import datetime
+            job.finished_at = datetime.utcnow()
+        
+        self.db.add(job)
+        await self.db.commit()
+
+    async def update_document_status(self, document: Document, status: str, total_pages: int = None, total_chunks: int = None):
+        document.status = status
+        if total_pages:
+            document.total_pages = total_pages
+        if total_chunks:
+            document.total_chunks = total_chunks
+            
+        self.db.add(document)
+        await self.db.commit()
+
+    async def save_chunks(self, chunks_data: List[dict]):
+        from app.db.models.document import DocumentChunk
+        import uuid
+        
+        for data in chunks_data:
+            db_chunk = DocumentChunk(
+                chunk_uuid=str(uuid.uuid4()),
+                tenant_uuid=data["tenant_uuid"],
+                collection_uuid=data["collection_uuid"],
+                document_uuid=data["document_uuid"],
+                chunk_index=data["index"],
+                content=data["content"],
+                token_count=data["token_count"],
+                vector_id=data["vector_id"],
+                metadata_=data.get("metadata")
+            )
+            self.db.add(db_chunk)
+        
+        await self.db.commit()
