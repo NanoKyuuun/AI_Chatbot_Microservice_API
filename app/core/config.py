@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str
     DEFAULT_CHAT_MODEL: str = "openai/gpt-4o-mini"
 
+    # Rate Limit
+    RATE_LIMIT_PER_MINUTE: int = 60
+    CHAT_RATE_LIMIT_PER_MINUTE: int = 30
+    UPLOAD_RATE_LIMIT_PER_MINUTE: int = 10
+
     # Storage
     STORAGE_DRIVER: str = "local"
     LOCAL_STORAGE_PATH: str = "/app/storage"

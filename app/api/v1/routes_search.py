@@ -7,10 +7,14 @@ from app.api.deps import validate_api_key
 from app.schemas.search import SemanticSearchRequest, SemanticSearchResponse
 from app.schemas.document import StandardResponse, ResponseMeta
 from app.services.search_service import SearchService
+from app.core.rate_limit import general_rate_limit
 
 router = APIRouter(prefix="/search", tags=["search"])
 
-@router.post("", response_model=StandardResponse[SemanticSearchResponse])
+@router.post("", 
+    response_model=StandardResponse[SemanticSearchResponse],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def semantic_search(
     request: SemanticSearchRequest,
     db: AsyncSession = Depends(get_db),

@@ -9,10 +9,14 @@ from app.api.deps import validate_api_key
 from app.schemas.collection import CollectionCreate, CollectionUpdate, CollectionRead, StandardResponse, ResponseMeta
 from app.db.repositories.collection_repository import CollectionRepository
 from app.core.errors import AppError
+from app.core.rate_limit import general_rate_limit
 
 router = APIRouter(prefix="/collections", tags=["collections"])
 
-@router.post("", response_model=StandardResponse[CollectionRead])
+@router.post("", 
+    response_model=StandardResponse[CollectionRead],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def create_collection(
     obj_in: CollectionCreate,
     db: AsyncSession = Depends(get_db),
@@ -29,7 +33,10 @@ async def create_collection(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.get("", response_model=StandardResponse[List[CollectionRead]])
+@router.get("", 
+    response_model=StandardResponse[List[CollectionRead]],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def list_collections(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
@@ -47,7 +54,10 @@ async def list_collections(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.get("/{collection_uuid}", response_model=StandardResponse[CollectionRead])
+@router.get("/{collection_uuid}", 
+    response_model=StandardResponse[CollectionRead],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def get_collection(
     collection_uuid: str,
     db: AsyncSession = Depends(get_db),
@@ -70,7 +80,10 @@ async def get_collection(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.patch("/{collection_uuid}", response_model=StandardResponse[CollectionRead])
+@router.patch("/{collection_uuid}", 
+    response_model=StandardResponse[CollectionRead],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def update_collection(
     collection_uuid: str,
     obj_in: CollectionUpdate,
@@ -96,7 +109,9 @@ async def update_collection(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.delete("/{collection_uuid}")
+@router.delete("/{collection_uuid}", 
+    dependencies=[Depends(general_rate_limit)]
+)
 async def delete_collection(
     collection_uuid: str,
     db: AsyncSession = Depends(get_db),

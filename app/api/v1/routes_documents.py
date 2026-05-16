@@ -11,10 +11,14 @@ from app.schemas.document import DocumentUploadResponse, DocumentStatusRead, Sta
 from app.services.document_service import DocumentService
 from app.db.repositories.document_repository import DocumentRepository
 from app.core.errors import AppError
+from app.core.rate_limit import general_rate_limit, upload_rate_limit
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
-@router.post("", response_model=StandardResponse[DocumentUploadResponse])
+@router.post("", 
+    response_model=StandardResponse[DocumentUploadResponse],
+    dependencies=[Depends(upload_rate_limit)]
+)
 async def upload_document(
     file: UploadFile = File(...),
     collection_uuid: str = Form(...),
@@ -58,7 +62,10 @@ async def upload_document(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.get("", response_model=StandardResponse[List[DocumentStatusRead]])
+@router.get("", 
+    response_model=StandardResponse[List[DocumentStatusRead]],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def list_documents(
     collection_uuid: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
@@ -82,7 +89,10 @@ async def list_documents(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.get("/{document_uuid}", response_model=StandardResponse[DocumentStatusRead])
+@router.get("/{document_uuid}", 
+    response_model=StandardResponse[DocumentStatusRead],
+    dependencies=[Depends(general_rate_limit)]
+)
 async def get_document_status(
     document_uuid: str,
     db: AsyncSession = Depends(get_db),
@@ -105,7 +115,9 @@ async def get_document_status(
         meta=ResponseMeta(request_id=str(uuid.uuid4()))
     )
 
-@router.delete("/{document_uuid}")
+@router.delete("/{document_uuid}", 
+    dependencies=[Depends(general_rate_limit)]
+)
 async def delete_document(
     document_uuid: str,
     db: AsyncSession = Depends(get_db),

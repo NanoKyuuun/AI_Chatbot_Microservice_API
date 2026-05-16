@@ -7,10 +7,14 @@ from app.api.deps import validate_api_key
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.document import StandardResponse, ResponseMeta
 from app.services.chat_service import ChatService
+from app.core.rate_limit import chat_rate_limit
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-@router.post("", response_model=StandardResponse[ChatResponse])
+@router.post("", 
+    response_model=StandardResponse[ChatResponse],
+    dependencies=[Depends(chat_rate_limit)]
+)
 async def chat(
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
