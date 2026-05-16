@@ -9,6 +9,8 @@ from app.core.errors import AppError
 from fastapi import status
 from app.core.logging import logger
 
+from app.services.usage_service import UsageService
+
 class SearchService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -16,6 +18,7 @@ class SearchService:
         self.vector_service = VectorService()
         self.col_repo = CollectionRepository(db)
         self.doc_repo = DocumentRepository(db)
+        self.usage_service = UsageService(db)
 
     async def semantic_search(
         self, 
@@ -32,8 +35,15 @@ class SearchService:
             )
 
         # 2. Generate embedding for query
-        query_vectors = await self.embedding_service.get_embeddings([request.query])
+        query_vectors, usage = await self.embedding_service.get_embeddings([request.query])
         query_vector = query_vectors[0]
+        
+        # Log search usage
+        await self.usage_service.log_search_usage(
+            tenant_id=tenant_id,
+            embedding_model=self.embedding_service.provider.model,
+            tokens=usage.get("total_tokens", 0)
+        )
 
         # 3. Prepare filters
         filters = request.filters or {}

@@ -12,6 +12,8 @@ from app.core.errors import AppError
 from fastapi import status
 from app.core.logging import logger
 
+from app.services.usage_service import UsageService
+
 class ChatService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -19,6 +21,7 @@ class ChatService:
         self.prompt_service = PromptService()
         self.llm_service = LLMService()
         self.chat_repo = ChatRepository(db)
+        self.usage_service = UsageService(db)
 
     async def chat(self, tenant_id: str, request: ChatRequest) -> ChatResponse:
         start_time = time.time()
@@ -70,6 +73,15 @@ class ChatService:
             model=request.options.model,
             temperature=request.options.temperature,
             max_tokens=request.options.max_tokens
+        )
+
+        # Log chat usage
+        await self.usage_service.log_chat_usage(
+            tenant_id=tenant_id,
+            model=llm_response["model"],
+            prompt_tokens=llm_response["usage"]["prompt_tokens"],
+            completion_tokens=llm_response["usage"]["completion_tokens"],
+            total_tokens=llm_response["usage"]["total_tokens"]
         )
 
         latency_ms = int((time.time() - start_time) * 1000)

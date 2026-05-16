@@ -68,7 +68,7 @@ async def _process_document(tenant_id: str, document_uuid: str, job_uuid: str):
             await doc_repo.update_job_status(job, JobStatus.RUNNING, progress=60)
             embedding_service = EmbeddingService()
             texts = [c["content"] for c in chunks]
-            embeddings = await embedding_service.get_embeddings(texts)
+            embeddings, usage = await embedding_service.get_embeddings(texts)
 
             # 7. Upsert to Qdrant
             await doc_repo.update_job_status(job, JobStatus.RUNNING, progress=80)

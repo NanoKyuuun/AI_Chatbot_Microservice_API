@@ -1,5 +1,5 @@
 import httpx
-from typing import List
+from typing import List, Tuple, Dict, Any
 from app.providers.embedding.base import EmbeddingProvider
 from app.core.config import settings
 from app.core.logging import logger
@@ -18,7 +18,7 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         self.base_url = base_url
         self.dimension = 1536 # Default for text-embedding-3-small
 
-    async def get_embeddings(self, texts: List[str]) -> List[List[float]]:
+    async def get_embeddings(self, texts: List[str]) -> Tuple[List[List[float]], Dict[str, Any]]:
         logger.info("requesting_embeddings", count=len(texts), model=self.model)
         
         headers = {
@@ -33,9 +33,6 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         
         # Determine URL (OpenRouter vs OpenAI)
         url = f"{self.base_url}/embeddings"
-        if "openrouter" in self.base_url.lower():
-            # OpenRouter might have different endpoint or needs specific headers
-            pass
 
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
@@ -52,7 +49,14 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
                 data = response.json()
                 # Sort by index to ensure order matches input
                 embeddings_data = sorted(data["data"], key=lambda x: x["index"])
-                return [item["embedding"] for item in embeddings_data]
+                embeddings = [item["embedding"] for item in embeddings_data]
+                
+                usage = data.get("usage", {
+                    "total_tokens": 0,
+                    "prompt_tokens": 0
+                })
+                
+                return embeddings, usage
                 
         except httpx.HTTPError as e:
             logger.exception("embedding_request_failed", error=str(e))
