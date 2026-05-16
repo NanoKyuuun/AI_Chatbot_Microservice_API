@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Any
-from sqlalchemy import String, BigInt, TIMESTAMP, Enum, func, JSON, ForeignKey
+from sqlalchemy import String, BigInteger, TIMESTAMP, Enum, func, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 import enum
@@ -16,7 +16,7 @@ class APIKeyStatus(str, enum.Enum):
 class APIClient(Base):
     __tablename__ = "api_clients"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     client_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -35,7 +35,7 @@ class APIClient(Base):
 class APIKey(Base):
     __tablename__ = "api_keys"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     key_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     client_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)

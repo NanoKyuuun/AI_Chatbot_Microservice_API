@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Any
-from sqlalchemy import String, BigInt, TIMESTAMP, Enum, func, JSON, Text, Integer, LongText, Numeric, Boolean
+from sqlalchemy import String, BigInteger, TIMESTAMP, Enum, func, JSON, Text, Integer, Text, Numeric, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 import enum
@@ -17,7 +17,7 @@ class UsageStatus(str, enum.Enum):
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     session_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     external_user_id: Mapped[Optional[str]] = mapped_column(String(150), nullable=True, index=True)
@@ -35,12 +35,12 @@ class ChatSession(Base):
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     message_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     session_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     role: Mapped[ChatRole] = mapped_column(Enum(ChatRole), nullable=False)
-    content: Mapped[str] = mapped_column(LongText, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
     sources: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
     model: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     prompt_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -55,7 +55,7 @@ class ChatMessage(Base):
 class RetrievalLog(Base):
     __tablename__ = "retrieval_logs"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     retrieval_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     session_uuid: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
@@ -72,7 +72,7 @@ class RetrievalLog(Base):
 class UsageLog(Base):
     __tablename__ = "usage_logs"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     usage_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     client_uuid: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
@@ -94,7 +94,7 @@ class UsageLog(Base):
 class ModelConfig(Base):
     __tablename__ = "model_configs"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     config_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -116,7 +116,7 @@ class ModelConfig(Base):
 class AnswerFeedback(Base):
     __tablename__ = "answer_feedback"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     feedback_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     session_uuid: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)

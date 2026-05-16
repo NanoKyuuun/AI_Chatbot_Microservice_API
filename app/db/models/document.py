@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Any
-from sqlalchemy import String, BigInt, TIMESTAMP, Enum, func, JSON, ForeignKey, Text, Integer, MediumText
+from sqlalchemy import String, BigInteger, TIMESTAMP, Enum, func, JSON, ForeignKey, Text, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 import enum
@@ -26,7 +26,7 @@ class JobStatus(str, enum.Enum):
 class Collection(Base):
     __tablename__ = "collections"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     collection_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -47,7 +47,7 @@ class Collection(Base):
 class Document(Base):
     __tablename__ = "documents"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     document_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     collection_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
@@ -56,7 +56,7 @@ class Document(Base):
     file_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     file_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     mime_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    file_size_bytes: Mapped[Optional[int]] = mapped_column(BigInt, nullable=True)
+    file_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     storage_path: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     source_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     metadata_: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)
@@ -77,7 +77,7 @@ class Document(Base):
 class DocumentVersion(Base):
     __tablename__ = "document_versions"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     version_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     document_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -96,7 +96,7 @@ class DocumentVersion(Base):
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     chunk_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     collection_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
@@ -105,7 +105,7 @@ class DocumentChunk(Base):
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     page_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     heading: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    content: Mapped[str] = mapped_column(MediumText, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
     token_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     vector_id: Mapped[str] = mapped_column(String(150), nullable=False)
     metadata_: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)
@@ -120,7 +120,7 @@ class DocumentChunk(Base):
 class IndexingJob(Base):
     __tablename__ = "indexing_jobs"
 
-    id: Mapped[int] = mapped_column(BigInt, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     job_uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     tenant_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     document_uuid: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
