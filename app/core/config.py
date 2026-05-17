@@ -23,7 +23,8 @@ class Settings(BaseSettings):
     # LLM
     OPENROUTER_API_KEY: str
     DEFAULT_CHAT_MODEL: str = "openai/gpt-4o-mini"
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_PROVIDER: str = "local"
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
 
     # Rate Limit
     RATE_LIMIT_PER_MINUTE: int = 60
